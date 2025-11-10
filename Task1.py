@@ -1,6 +1,7 @@
 from collections import UserDict
 from datetime import datetime
 import pickle
+from art import logo
 
 
 class Field:
@@ -31,7 +32,7 @@ class Record:
     def __init__(self, name):
         self.name = Name(name)
         self.phones = []
-        self.birthday = None  # не обов'язкове поле
+        self.birthday = None
 
     def add_phone(self, phone):
         self.phones.append(Phone(phone))
@@ -95,3 +96,107 @@ class AddressBook(UserDict):
                 return pickle.load(file)
         except FileNotFoundError:
             return cls()
+
+
+book = AddressBook.load_data()
+
+
+def start():
+    print(logo)
+    print("Привіт! Я твоя адресна книга. Ось що можу:")
+    print(
+        "/add — додати запис\n/change — змінити телефон\n/show — показати запис\n/birthdays — найближчі дні народження\n/help — список команд\n/exit — вийти"
+    )
+
+
+def add_contact():
+    name = input("Введіть ім'я: ").strip()
+    phone = input("Введіть телефон (10 цифр): ").strip()
+    bday = input("Введіть день народження (необов'язково, ДД.MM.YYYY): ").strip()
+
+    try:
+        record = Record(name)
+        record.add_phone(phone)
+        if bday:
+            record.add_birthday(bday)
+        book.add_record(record)
+        book.save_data()
+        print("✅ Запис додано!")
+    except ValueError as e:
+        print(f"Помилка: {e}")
+
+
+def change_phone():
+    name = input("Введіть ім'я: ").strip()
+    record = book.find(name)
+    if not record:
+        print("Контакт не знайдено.")
+        return
+    old_phone = input("Введіть старий телефон: ").strip()
+    new_phone = input("Введіть новий телефон: ").strip()
+    try:
+        record.change_phone(old_phone, new_phone)
+        book.save_data()
+        print("✅ Телефон змінено!")
+    except ValueError as e:
+        print(f"Помилка: {e}")
+
+
+def show_contact():
+    name = input("Введіть ім'я: ").strip()
+    record = book.find(name)
+    if record:
+        print(record)
+    else:
+        print("Запис не знайдено.")
+
+
+def show_birthdays():
+    bdays = book.get_upcoming_birthdays()
+    if not bdays:
+        print("Ніхто не святкує найближчі 7 днів 🎉")
+        return
+    for day, names in bdays.items():
+        print(f"{day}: {', '.join(names)}")
+
+
+def show_help():
+    print(
+        """
+/add — додати запис
+/change — змінити телефон
+/show — показати запис
+/birthdays — найближчі дні народження
+/help — список команд
+/exit — вийти
+"""
+    )
+
+
+def main():
+    start()
+
+    while True:
+        command = input("\nВведіть команду: ").strip().lower()
+        if command in ("/exit", "exit", "вихід"):
+            book.save_data()
+            print("📘 Дані збережено. До зустрічі!")
+            break
+        elif command in ("/add", "add"):
+            add_contact()
+        elif command in ("/change", "change"):
+            change_phone()
+        elif command in ("/show", "show"):
+            show_contact()
+        elif command in ("/birthdays", "birthdays"):
+            show_birthdays()
+        elif command in ("/help", "help"):
+            show_help()
+        elif command in ("/start", "привіт"):
+            start()
+        else:
+            print("Невідома команда. Напишіть /help")
+
+
+if __name__ == "__main__":
+    main()
