@@ -89,27 +89,23 @@ class AddressBook(UserDict):
         with open(filename, "wb") as file:
             pickle.dump(self, file)
 
-    @classmethod
-    def load_data(cls, filename="addressbook.pk1"):
+    def load_addressbook(filename="addressbook.pk1"):
         try:
             with open(filename, "rb") as file:
                 return pickle.load(file)
         except FileNotFoundError:
-            return cls()
-
-
-book = AddressBook.load_data()
+            return AddressBook()
 
 
 def start():
     print(logo)
-    print("Привіт! Я твоя адресна книга. Ось що можу:")
+    print("Привіт! Я твоя адресна книга. Ось що я можу:")
     print(
         "/add — додати запис\n/change — змінити телефон\n/show — показати запис\n/birthdays — найближчі дні народження\n/help — список команд\n/exit — вийти"
     )
 
 
-def add_contact():
+def add_contact(book):
     name = input("Введіть ім'я: ").strip()
     phone = input("Введіть телефон (10 цифр): ").strip()
     bday = input("Введіть день народження (необов'язково, ДД.MM.YYYY): ").strip()
@@ -126,7 +122,7 @@ def add_contact():
         print(f"Помилка: {e}")
 
 
-def change_phone():
+def change_phone(book):
     name = input("Введіть ім'я: ").strip()
     record = book.find(name)
     if not record:
@@ -142,7 +138,7 @@ def change_phone():
         print(f"Помилка: {e}")
 
 
-def show_contact():
+def show_contact(book):
     name = input("Введіть ім'я: ").strip()
     record = book.find(name)
     if record:
@@ -151,7 +147,7 @@ def show_contact():
         print("Запис не знайдено.")
 
 
-def show_birthdays():
+def show_birthdays(book):
     bdays = book.get_upcoming_birthdays()
     if not bdays:
         print("Ніхто не святкує найближчі 7 днів 🎉")
@@ -174,6 +170,7 @@ def show_help():
 
 
 def main():
+    book = AddressBook.load_addressbook()
     start()
 
     while True:
@@ -183,13 +180,13 @@ def main():
             print("📘 Дані збережено. До зустрічі!")
             break
         elif command in ("/add", "add"):
-            add_contact()
+            add_contact(book)
         elif command in ("/change", "change"):
-            change_phone()
+            change_phone(book)
         elif command in ("/show", "show"):
-            show_contact()
+            show_contact(book)
         elif command in ("/birthdays", "birthdays"):
-            show_birthdays()
+            show_birthdays(book)
         elif command in ("/help", "help"):
             show_help()
         elif command in ("/start", "привіт"):
